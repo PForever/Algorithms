@@ -1,38 +1,38 @@
-﻿using Algorithms.Lib.Implementations.Simple;
-using Algorithms.Lib.Interfaces;
+﻿using Algorithms.Lib.Interfaces;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Algorithms.Lib
+namespace Algorithms.Lib.GraphsAlghorithms
 {
     public static class Cycles
     {
-        public static IEnumerable<string> ApplayFleury(this IGraph graph)
+        public static IEnumerable<string> ApplayFleury(this IGraph graph, IGraphAtoFactory factory)
         {
-            var factory = new GraphAtoFactory();
             var cycle = factory.CreatePoute();
             var node = graph.GetFirstNode();
             int i = 0;
+            string removed = "";
             do
             {
                 var edges = node.GetEdges(graph).ToList();
-                var p = edges.ToDictionary(e => e, e => !e.IsBrige(node.GetNext(e), graph));
+                var edgesListInfo = string.Join(", ", edges.Select(e => $"{e.Print()} - {(e.IsBrige(node.GetNext(e), graph) ? "Мост" : "Не мост")}"));
                 var edge = edges.FirstOrDefault(e => !e.IsBrige(node.GetNext(e), graph)) ?? edges.FirstOrDefault();
-                yield return $"Step {i}, Cycle: {cycle.Print()}, Graph: {graph.Print()}, Current node: {node}, Current edge: {edge}";
+                yield return $"{(removed == "" ? "" : $"\tУдаляем из графа грань {removed}\n")}Шаг {i}\n\tЦикл: {cycle.Print()}\n\tГафф: {graph.Print()}\n\tТекущий узел: {node}, Нерассмотренные грани: {edgesListInfo}\n\tПервая не рассмотренная грань, не являющаяся мостом: {edge}";
                 if (edge is null) break;
                 node = node.GetNext(edge);
+                removed = edge.Print();
                 graph.RemoveEdge(edge);
                 cycle.Append(edge);
                 i++;
             } while (true);
         }
-        public static IEnumerable<IPath> ApplayRobertsFlores(this IOrgraph orgraph)
+        public static IEnumerable<IPath> ApplayRobertsFlores(this IOrgraph orgraph, IGraphAtoFactory factory)
         {
-            var factory = new GraphAtoFactory();
             var node = orgraph.GetFirstNode();
-            return GetAllCircuit(node, orgraph, new HashSet<INode>(orgraph.Nodes.Count), node, factory, s => Console.WriteLine(s));
+            int i = 0;
+            return GetAllCircuit(node, orgraph, new HashSet<INode>(orgraph.Nodes.Count), node, factory, s => Console.WriteLine($"Шаг {i++}.\n{s}"));
         }
 
         private static IPath GetCircuit(INode node, IOrgraph orgraph, HashSet<INode> notAllowed, INode root, IGraphAtoFactory factory, Action<string> OnStep)
@@ -60,12 +60,11 @@ namespace Algorithms.Lib
         private static IEnumerable<IPath> GetAllCircuit(INode node, IOrgraph orgraph, HashSet<INode> notAllowed, INode root, IGraphAtoFactory factory, Action<string> OnStep)
         {
             notAllowed.Add(node);
-            var step = $"S = {{{string.Join(", ", notAllowed)}}}, Current node: {node}, Current arc: ";
+            var step = $"\tS = {{{string.Join(", ", notAllowed)}}}\n\tТекущий узел: {node}, Рассматриваема дуга: ";
             //OnStep($"{string.Join(", ", notAllowed)}");
             if (notAllowed.Count == orgraph.Nodes.Count && node.GetOutputArcs(orgraph).FirstOrDefault(a => a.To == root) is { } finalArc)
             {
-                OnStep($"{step} {finalArc}");
-                OnStep($"circuit founded");
+                OnStep($"{step} {finalArc}\n\tцикл найден");
                 var circuit = factory.CreatePath();
                 circuit.Append(finalArc);
                 yield return circuit;

@@ -13,5 +13,8 @@ namespace Algorithms.Lib.Interfaces
         INode CreateNode(string name);
         IRoute CreatePoute();
         IPath CreatePath();
+        IOrgraph CreateOrgraph(int[,] incidence, params string[] names);
+        IWeighedGraph CreateWeighedGraph(int[,] incidence, params string[] names);
+        IWeighedGraph CreateWeighedPairGraph(int[,] pair, string[] xNames, string[] yNames);
     }
 }

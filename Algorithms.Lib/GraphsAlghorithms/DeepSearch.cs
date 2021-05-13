@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Algorithms.Lib
+namespace Algorithms.Lib.GraphsAlghorithms
 {
     public class DeepSearch
     {
@@ -36,7 +36,7 @@ namespace Algorithms.Lib
             _passed.Clear();
         }
 
-        private IEnumerable<INode> InternalSearch(IDictionary<INode, IList<IEdge>> outputEdges , INode root)
+        private IEnumerable<INode> InternalSearch(IDictionary<INode, IList<IEdge>> outputEdges, INode root)
         {
             _ = _passed.Add(root);
             yield return root;

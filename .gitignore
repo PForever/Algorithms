@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Algorithms/.vshistory/Program.cs
+/Algorithms.Lib/.vshistory
+/Algorithms.Lib/GraphsAlghorithms/.vshistory
+/Algorithms.Lib/Implementations/Simple/.vshistory
+/Algorithms.Lib/Interfaces/.vshistory

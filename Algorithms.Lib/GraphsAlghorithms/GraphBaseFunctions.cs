@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
-namespace Algorithms.Lib
+namespace Algorithms.Lib.GraphsAlghorithms
 {
     public static class GraphBaseFunctions
     {
@@ -14,7 +14,7 @@ namespace Algorithms.Lib
         public static IEnumerable<INode> GetNodes(this IEnumerable<IArcs> edges) => edges.GetAllNodes().Distinct();
         private static IEnumerable<INode> GetAllNodes(this IEnumerable<IEdge> edges)
         {
-            foreach(var edge in edges)
+            foreach (var edge in edges)
             {
                 yield return edge.Node1;
                 yield return edge.Node2;
@@ -22,7 +22,7 @@ namespace Algorithms.Lib
         }
         private static IEnumerable<INode> GetAllNodes(this IEnumerable<IArcs> edges)
         {
-            foreach(var edge in edges)
+            foreach (var edge in edges)
             {
                 yield return edge.From;
                 yield return edge.To;

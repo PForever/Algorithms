@@ -1,4 +1,5 @@
-﻿using Algorithms.Lib.Interfaces;
+﻿using Algorithms.Lib.GraphsAlghorithms;
+using Algorithms.Lib.Interfaces;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
