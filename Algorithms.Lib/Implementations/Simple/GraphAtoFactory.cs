@@ -1,4 +1,5 @@
-﻿using Algorithms.Lib.Interfaces;
+﻿using Algorithms.Lib.Implementations.Pairs;
+using Algorithms.Lib.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace Algorithms.Lib.Implementations.Simple
         public IEdge CreateEdge(INode node1, INode node2) => new Edge(node1, node2);
         public IArcs CreateArc(INode node1, INode node2) => new Arc(node1, node2);
         public INode CreateNode(string name) => new Node(name);
+        public IPairNode CreatePairNode(string name, bool isX) => new PairNode(name, isX);
 
         public IOrgraph CreateOrgraph(int[,] incidence, params string[] names)
         {
@@ -60,14 +62,34 @@ namespace Algorithms.Lib.Implementations.Simple
             return CreateOrgraph(nodes.Values, edgs);
         }
 
-        public IOrgraph CreateWeighedGraph(int[,] incidence, params string[] names)
+        public ITwoPartsWeighedGraph CreateTwoPartsWeighedGraph(int[,] pair, string[] xNames, string[] yNames)
         {
-            throw new NotImplementedException();
+            int xLength = pair.GetLength(0);
+            int yLength = pair.GetLength(1);
+            var nodeXs = new Dictionary<string, IPairNode>(xLength);
+            var nodeYs = new Dictionary<string, IPairNode>(yLength);
+            var edges = new List<IWeighedEdge>();
+            for (int xIndex = 0; xIndex < xLength; xIndex++)
+            {
+                var node1 = nodeXs.GetOrAdd(xNames[xIndex], name => CreatePairNode(name, true));
+                for (int yIndex = 0; yIndex < yLength; yIndex++)
+                {
+                    var node2 = nodeYs.GetOrAdd(yNames[yIndex], name => CreatePairNode(name, false));
+                    var edge = CreateWeighedEdge(node1, node2, pair[xIndex, yIndex]);
+                    edges.Add(edge);
+                }
+            }
+            var graph = CreateTwoPartsWeighedGraph(nodeXs.Values, nodeYs.Values);
+            edges.ForEach(e => graph.AddEdge(e));
+            return graph;
         }
 
-        public IOrgraph CreateWeighedPairGraph(int[,] pair, string[] xNames, string[] yNames)
-        {
-            throw new NotImplementedException();
-        }
+        public IWeighedEdge CreateWeighedEdge(IPairNode node1, IPairNode node2, int weight) => new WeightEdge(node1, node2, weight);
+
+        public IWeighedPairsGraph CreateWeighedPairsGraph(IEnumerable<IPairNode> nodeXs, IEnumerable<IPairNode> nodeYs) => new WeighedPairsGraph(nodeXs, nodeYs);
+
+        public ITwoPartsWeighedGraph CreateTwoPartsWeighedGraph(IEnumerable<IPairNode> nodeXs, IEnumerable<IPairNode> nodeYs) => new TwoPartsWeighedGraph(nodeXs, nodeYs);
+
+        public ITwoPartsWeighedRout CreateTwoPartsWeighedRout(IPairNode start) => new TwoPartsWeighedRout(start);
     }
 }

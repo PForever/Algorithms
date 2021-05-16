@@ -6,12 +6,6 @@ namespace Algorithms.Lib.Interfaces
     {
         IReadOnlyCollection<IWeighedEdge> WeighedEdges { get; }
         void RemoveEdge(IWeighedEdge edge);
-    }
-    public interface IWeighedPairGraph : IPrintable
-    {
-        IReadOnlyCollection<INode> XNodes { get; }
-        IReadOnlyCollection<INode> YNodes { get; }
-        IReadOnlyCollection<IWeighedEdge> GetEdges(INode node);
-        void DecreaseWeight(INode node, int d);
+        void AddEdge(IWeighedEdge edge);
     }
 }

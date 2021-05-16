@@ -3,7 +3,7 @@ using System;
 
 namespace Algorithms.Lib.Implementations.Simple
 {
-    class Edge : IEdge
+    class Edge : IEdge, IEquatable<IEdge>
     {
 
         public Edge(INode node1, INode node2)
@@ -19,7 +19,7 @@ namespace Algorithms.Lib.Implementations.Simple
 
         public override bool Equals(object obj) => Equals(obj as IEdge);
 
-        public override int GetHashCode() => HashCode.Combine(Node1, Node2);
+        public override int GetHashCode() => HashCode.Combine(Node1.GetHashCode() ^ Node2.GetHashCode());
         public string Print() => $"{{{Node1.Print()}, {Node2.Print()}}}";
         public override string ToString() => Print();
     }

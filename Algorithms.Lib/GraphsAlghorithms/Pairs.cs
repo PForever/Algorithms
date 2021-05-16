@@ -9,71 +9,148 @@ namespace Algorithms.Lib.GraphsAlghorithms
 {
     public static class Pairs
     {
-        public static IWeighedGraph ApplayHungarian(this IWeighedPairGraph graph, IGraphAtoFactory factory, Action<string> onStep)
+        public static IWeighedPairsGraph ApplayHungarian(this ITwoPartsWeighedGraph graph, IGraphAtoFactory factory, Action<string> onStep)
         {
-            if (graph.XNodes.Count > graph.YNodes.Count) throw new ArgumentException("число x элементов должно быть меньше или равно числу y элементов");
-            int[] potentialX = new int[graph.XNodes.Count];
-            int[] potentialY = new int[graph.YNodes.Count];
-
+            var hungarian = new Hungarian(factory);
+            return hungarian.Applay(graph);
         }
     }
 
     class Hungarian
     {
-        public void Applay(ITwoPartsGraph graph, IGraphAtoFactory factory)
+        private readonly IGraphAtoFactory _factory;
+
+        public Hungarian(IGraphAtoFactory factory)
         {
-            var pairs = factory.CreatePairGraph(graph.NodeXs, graph.NodeYs);
-            var hard = factory.CreateGraph(graph.Nodes);
-            var potentials = CreatePotential(pairs);
-            while (pairs.IsNotComplited())
+            _factory = factory;
+        }
+        public IWeighedPairsGraph Applay(ITwoPartsWeighedGraph graph)
+        {
+            var pairs = _factory.CreateWeighedPairsGraph(graph.NodeXs, graph.NodeYs);
+            var hard = _factory.CreateTwoPartsWeighedGraph(graph.Nodes, graph.NodeYs);
+            var potentials = CreatePotential(graph.Nodes);
+            while (pairs.GetFree().FirstOrDefault() is { } node)
             {
-                var node = pairs.GetFree().First();
-                if (!TryIncreasePairs(pairs, node, hard, out INode[] chainsNodesX, out INode[] chainsNodeZ))
+                if (!TryIncreasePairs(pairs, node, hard, out IPairNode[] chainsNodesX, out IPairNode[] chainsNodeY))
                 {
-                    var (delta, edge) = GetMinDelta(graph, potentials, chainsNodesX, chainsNodeZ, factory);
-                    hard.AddEdge(edge);
+                    var (delta, edge) = GetMinDelta(graph, potentials, chainsNodesX, chainsNodeY);
+                    ChagePotential(potentials, delta, chainsNodesX, chainsNodeY);
+                    /*if(edge != null) */hard.AddEdge(edge);
                 }
             }
+            return pairs;
         }
 
-        private bool TryIncreasePairs(IPirsGraph pairs, INode node, IGraph hard, out INode[] chainsNodesX, out INode[] chainsNodeZ)
+        private static void ChagePotential(IDictionary<IPairNode, int> potentials, int delta, IPairNode[] chainsNodesX, IPairNode[] chainsNodeY)
         {
-            IRoute chain = hard.GetChain(start: node);
-            if (chain.IsNotMChainOf(pair))
+            chainsNodesX.ForEach(n => potentials[n] += delta);
+            chainsNodeY.ForEach(n => potentials[n] -= delta);
+        }
+
+        private bool TryIncreasePairs(IWeighedPairsGraph pairs, IPairNode node, ITwoPartsWeighedGraph hard, out IPairNode[] chainsNodeXs, out IPairNode[] chainsNodeYs)
+        {
+            var (chain, isMChain) = GetChain(hard, pairs, node, new HashSet<IPairNode>());
+            if (!isMChain)
             {
-                chainsNodesX = GetX(chain);
-                chainsNodesX = GetY(chain);
+                chainsNodeXs = chain.NodeXs.ToArray();
+                chainsNodeYs = chain.NodeYs.ToArray();
                 return false;
             }
-            pairs.ChangeByChain(chain);
+            chainsNodeXs = chainsNodeYs = null;
+            ChangePairsByChain(pairs, chain);
             return true;
         }
 
-        private (int Delta, IWeighedEdge Edge) GetMinDelta(ITwoPartsGraph graph, IDictionary<INode, int> potentials, INode[] chainsNodesX, INode[] notChainsNodeY)
+        private static void ChangePairsByChain(IWeighedPairsGraph pairs, ITwoPartsWeighedRout chain)
         {
-            int minDelta = 0;
+            var pairsEdges = pairs.Edges.ToHashSet();
+            var contais = new List<IWeighedEdge>(pairsEdges.Count);
+            var notContais = new List<IWeighedEdge>(pairsEdges.Count);
+            foreach(var edge in chain.Edges)
+            {
+                if (pairsEdges.Contains(edge)) contais.Add(edge);
+                else notContais.Add(edge);
+            }
+            foreach (var edge in contais) pairs.RemoveEdge(edge);
+            foreach (var edge in notContais) pairs.AddEdge(edge);
+        }
+
+        //private (ITwoPartsWeighedRout Chain, bool IsMChain) GetChain(ITwoPartsWeighedGraph hard, IWeighedPairsGraph pairs, PairNode start)
+        //{
+        //    var edges = hard.GetEdges(start.Node).ToList();
+        //    if (edges.Count == 0) return (_factory.CreateTwoPartsWeighedRout(start), false);
+        //    var notMChains = new List<ITwoPartsWeighedRout>();
+        //    var mChains = new List<ITwoPartsWeighedRout>();
+        //    foreach (var edge in edges)
+        //    {
+        //        var next = start.Node.GetNext(edge);
+        //        var (chain, isMChain) = GetChainTail(hard, pairs, new PairNode(next, !start.IsX));
+        //        if (isMChain) mChains.Add(chain);
+        //        else notMChains.Add(chain);
+        //        chain.AddEdge(edge);
+        //    }
+        //    return mChains.Count != 0 ? (mChains.MinElement(c => c.NodeCount), true) 
+        //                           : (notMChains.MinElement(c => c.NodeCount), false);
+        //}
+        private (ITwoPartsWeighedRout Chain, bool IsMChain) GetChain(ITwoPartsWeighedGraph hard, IWeighedPairsGraph pairs, IPairNode node, HashSet<IPairNode> used)
+        {
+            used.Add(node);
+            var edges = hard.GetEdges(node).Where(e => !used.Contains(e.GetNext(node))).ToList();
+            if (edges.Count == 0) return (_factory.CreateTwoPartsWeighedRout(node), false);
+            var notMChains = new List<ITwoPartsWeighedRout>();
+            var mChains = new List<ITwoPartsWeighedRout>();
+            foreach (var edge in edges)
+            {
+                var next = edge.GetNext(node);
+                if (IsWhiteFree(next, pairs))
+                {
+                    var chain = _factory.CreateTwoPartsWeighedRout(node);
+                    mChains.Add(chain);
+                    chain.AddEdge(edge);
+                }
+                else
+                {
+                    var (chain, isMChain) = GetChain(hard, pairs, next, new HashSet<IPairNode>(used));
+                    if (isMChain) mChains.Add(chain);
+                    else notMChains.Add(chain);
+                    chain.AddEdge(edge);
+                }
+
+            }
+            return mChains.Count != 0 ? (mChains.MinElement(c => c.NodeCount), true)
+                                   : (notMChains.MinElement(c => c.NodeCount), false);
+        }
+
+        //private static bool IsTailOfMChain(ITwoPartsWeighedRout chain, IWeighedPairsGraph pairs)
+        //{
+        //    var last = chain.GetLast();
+        //    return IsWhiteFree(last, pairs);
+        //}
+        private static bool IsWhiteFree(IPairNode node, IWeighedPairsGraph pairs) => /*node.IsX &&*/ pairs.IsFree(node);
+        private (int Delta, IWeighedEdge Edge) GetMinDelta(ITwoPartsWeighedGraph graph, IDictionary<IPairNode, int> potentials, IPairNode[] chainsNodesX, IPairNode[] chainsNodeY)
+        {
+            int minDelta = int.MaxValue;
+            var notChainsNodeY = graph.NodeYs.Where(n => !chainsNodeY.Contains(n));
             IWeighedEdge currentEdge = null;
             foreach (var nodeX in chainsNodesX)
-            {
                 foreach (var nodeY in notChainsNodeY)
                 {
                     var (delta, edge) = GetDelta(graph, potentials, nodeX, nodeY);
-                    if(delta < minDelta)
+                    if(delta <= minDelta)
                     {
                         minDelta = delta;
                         currentEdge = edge;
                     }
                 }
-            }
+            if (currentEdge == null) return (0, currentEdge);
             return (minDelta, currentEdge);
         }
 
-        private (int Delta, IWeighedEdge Edge) GetDelta(ITwoPartsGraph graph, IDictionary<INode, int> potentials, INode nodeX, INode nodeY)
+        private (int Delta, IWeighedEdge Edge) GetDelta(ITwoPartsWeighedGraph graph, IDictionary<IPairNode, int> potentials, IPairNode nodeX, IPairNode nodeY)
         {
-            var edge = graph.WeighedEdges.Contains(nodeX, nodeY);
+            var edge = graph.GetEdge(nodeX, nodeY);
             return (edge.Weight - potentials[nodeX] - potentials[nodeY], edge);
         }
-
-        private static IDictionary<INode, int> CreatePotential(IEnumerable<INode> nodes) => nodes.ToDictionary(n => n, _ => 0);
+        private static IDictionary<IPairNode, int> CreatePotential(IEnumerable<IPairNode> nodes) => nodes.ToDictionary(n => n, _ => 0);
     }
 }

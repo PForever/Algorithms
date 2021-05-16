@@ -11,10 +11,14 @@ namespace Algorithms.Lib.Interfaces
         IOrgraph CreateOrgraph(params (string From, string To)[] edges);
         IGraph CreateGraph(params (string Node1, string Node2)[] edges);
         INode CreateNode(string name);
+        IPairNode CreatePairNode(string name, bool isX);
         IRoute CreatePoute();
         IPath CreatePath();
         IOrgraph CreateOrgraph(int[,] incidence, params string[] names);
-        IWeighedGraph CreateWeighedGraph(int[,] incidence, params string[] names);
-        IWeighedGraph CreateWeighedPairGraph(int[,] pair, string[] xNames, string[] yNames);
+        IWeighedEdge CreateWeighedEdge(IPairNode node1, IPairNode node2, int weight);
+        ITwoPartsWeighedGraph CreateTwoPartsWeighedGraph(int[,] pair, string[] xNames, string[] yNames);
+        IWeighedPairsGraph CreateWeighedPairsGraph(IEnumerable<IPairNode> nodeXs, IEnumerable<IPairNode> nodeYs);
+        ITwoPartsWeighedGraph CreateTwoPartsWeighedGraph(IEnumerable<IPairNode> nodeXs, IEnumerable<IPairNode> nodeYs);
+        ITwoPartsWeighedRout CreateTwoPartsWeighedRout(IPairNode start);
     }
 }
