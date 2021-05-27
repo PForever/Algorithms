@@ -7,6 +7,7 @@ namespace Algorithms.Lib
 {
     public static class SystemHelp
     {
+        public static string StrJoin<T>(this IEnumerable<T> src, string separator = ", ") => string.Join(separator, src);
         public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> factory)
         {
             if (dictionary.ContainsKey(key)) return dictionary[key];
@@ -31,6 +32,28 @@ namespace Algorithms.Lib
             }
             return min.Item;
         }
+        public static IEnumerable<T> Meanwhile<T>(this IEnumerable<T> src, Action<T> action)
+        {
+            if (src is null)
+            {
+                throw new ArgumentNullException(nameof(src));
+            }
+
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+            static IEnumerable<T> Minwhile(IEnumerable<T> src, Action<T> action)
+            {
+                foreach (var i in src)
+                {
+                    action(i);
+                    yield return i;
+                }
+            }
+            return Minwhile(src, action);
+        }
+
         public static void ForEach<T>(this IEnumerable<T> src, Action<T> action)
         {
             if (src is null)

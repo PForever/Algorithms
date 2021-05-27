@@ -22,7 +22,9 @@ namespace Algorithms.Lib.Implementations.Pairs
 
         public void AddEdge(IWeighedEdge edge)
         {
-            _edges.Add(new EdgeKey(edge.Node1, edge.Node2), edge);
+            var key = new EdgeKey(edge.Node1, edge.Node2);
+            //if (_edges.ContainsKey(key)) return;
+            _edges.Add(key, edge);
             GetEdgesListOrThrow(edge.Node1).Add(edge);
             GetEdgesListOrThrow(edge.Node2).Add(edge);
         }
@@ -32,7 +34,8 @@ namespace Algorithms.Lib.Implementations.Pairs
         public IEnumerable<IWeighedEdge> GetEdges(IPairNode node) => GetEdgesListOrThrow(node).AsEnumerable();
         private IList<IWeighedEdge> GetEdgesListOrThrow(IPairNode node) => _nodeXs.TryGetValue(node, out var value) || _nodeYs.TryGetValue(node, out value) ? value : throw new ArgumentOutOfRangeException("Graph doesn't contains this node");
 
-        public string Print() => $"<X = {string.Join(", ", NodeXs.Select(n => n.Print()))}, Y = {string.Join(", ", NodeYs.Select(n => n.Print()))}, E = {string.Join(", ", _edges.Values.Distinct().Select(n => n.Print()))}>";
+        //public string Print() => $"<X = {string.Join(", ", NodeXs.Select(n => n.Print()))}, Y = {string.Join(", ", NodeYs.Select(n => n.Print()))}, E = {string.Join(", ", _edges.Values.Distinct().Select(n => n.Print()))}>";
+        public string Print() => $"{{{string.Join(", ", _edges.Values.Distinct().Select(n => n.Print()))}}}";
         public override string ToString() => Print();
         struct EdgeKey : IEquatable<EdgeKey>
         {

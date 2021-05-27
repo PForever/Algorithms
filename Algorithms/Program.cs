@@ -12,7 +12,9 @@ namespace Algorithms
         {
             Console.OutputEncoding = Encoding.Unicode;
             var graphFactory = new GraphAtoFactory();
-            DiscreteMathematicsCourse.Task7(graphFactory);
+            //AlgorithmsCourse.Task7();
+            AlgorithmsCourse.Task10();
+            //DiscreteMathematicsCourse.Task7(graphFactory);
             //DiscreteMathematicsCourse.Task8(graphFactory);
             //DiscreteMathematicsCourse.Task9(graphFactory);
         }

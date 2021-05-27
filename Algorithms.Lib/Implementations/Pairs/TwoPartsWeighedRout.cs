@@ -27,6 +27,7 @@ namespace Algorithms.Lib.Implementations.Pairs
 
         }
 
-        public string Print() => $"{string.Join(", ", _nodes.Select(n => n.Print()))}";
+        public string Print() => $"{{{string.Join(", ", _nodes.Select(n => n.Print()))}}}";
+        public override string ToString() => Print();
     }
 }
